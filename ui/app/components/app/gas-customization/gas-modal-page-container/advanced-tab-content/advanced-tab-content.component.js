@@ -30,6 +30,7 @@ export default class AdvancedTabContent extends Component {
     super(props)
 
     this.debouncedGasLimitReset = debounce((dVal) => {
+      console.log('------------123123123123123123----------------')
       if (dVal < 21000) {
         props.updateCustomGasLimit(21000)
       }
