@@ -1,5 +1,6 @@
 import { NETWORK_TYPES } from '../helpers/constants/common'
-import { stripHexPrefix } from 'ethereumjs-util'
+import { stripHexPrefix, addHexPrefix } from 'ethereumjs-util'
+
 
 const abi = require('human-standard-token-abi')
 import {
@@ -49,6 +50,7 @@ const selectors = {
   getNumberOfTokens,
   isEthereumNetwork,
   getMetaMetricState,
+  getKnownMethodData,
 }
 
 module.exports = selectors
@@ -326,4 +328,15 @@ function getMetaMetricState (state) {
     numberOfAccounts: getNumberOfAccounts(state),
     participateInMetaMetrics: state.metamask.participateInMetaMetrics,
   }
+}
+
+function getKnownMethodData (state, data) {
+  if (!data) {
+    return null
+  }
+  const prefixedData = addHexPrefix(data)
+  const fourBytePrefix = prefixedData.slice(0, 10)
+  const { knownMethodData } = state.metamask
+
+  return knownMethodData && knownMethodData[fourBytePrefix]
 }

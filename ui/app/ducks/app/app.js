@@ -77,6 +77,7 @@ function reduceApp (state, action) {
       ledger: `m/44'/60'/0'/0/0`,
     },
     lastSelectedProvider: null,
+    loadingMethodData: false,
   }, state.appState)
 
   switch (action.type) {
@@ -750,6 +751,17 @@ function reduceApp (state, action) {
       return extend(appState, {
         lastSelectedProvider: action.value,
       })
+
+    case actions.LOADING_METHOD_DATA_STARTED:
+      return extend(appState, {
+        loadingMethodData: true,
+      })
+
+    case actions.LOADING_METHOD_DATA_FINISHED:
+      return extend(appState, {
+        loadingMethodData: false,
+      })
+
 
     default:
       return appState

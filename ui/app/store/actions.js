@@ -8,6 +8,7 @@ const {
 } = require('../pages/send/send.utils')
 const ethUtil = require('ethereumjs-util')
 const { fetchLocale } = require('../helpers/utils/i18n-helper')
+const { getMethodDataAsync } = require('../helpers/utils/transactions.util')
 const log = require('loglevel')
 const { ENVIRONMENT_TYPE_NOTIFICATION } = require('../../../app/scripts/lib/enums')
 const { hasUnconfirmedTransactions } = require('../helpers/utils/confirm-tx.util')
@@ -350,6 +351,12 @@ var actions = {
 
   setFirstTimeFlowType,
   SET_FIRST_TIME_FLOW_TYPE: 'SET_FIRST_TIME_FLOW_TYPE',
+
+  getContractMethodData,
+  loadingMethoDataStarted,
+  loadingMethoDataFinished,
+  LOADING_METHOD_DATA_STARTED: 'LOADING_METHOD_DATA_STARTED',
+  LOADING_METHOD_DATA_FINISHED: 'LOADING_METHOD_DATA_FINISHED',
 }
 
 module.exports = actions
@@ -2715,5 +2722,40 @@ function setFirstTimeFlowType (type) {
       type: actions.SET_FIRST_TIME_FLOW_TYPE,
       value: type,
     })
+  }
+}
+
+function loadingMethoDataStarted () {
+  return {
+    type: actions.LOADING_METHOD_DATA_STARTED,
+  }
+}
+
+function loadingMethoDataFinished () {
+  return {
+    type: actions.LOADING_METHOD_DATA_FINISHED,
+  }
+}
+
+function getContractMethodData (data = '') {
+  return (dispatch, getState) => {
+    const prefixedData = ethUtil.addHexPrefix(data)
+    const fourBytePrefix = prefixedData.slice(0, 10)
+    const { knownMethodData } = getState().metamask.knownMethodData
+
+    if (knownMethodData && knownMethodData[fourBytePrefix]) {
+      return Promise.resolve(knownMethodData[fourBytePrefix])
+    }
+
+    dispatch(actions.loadingMethoDataStarted())
+    log.debug(`loadingMethodData`)
+    return getMethodDataAsync(fourBytePrefix)
+      .then(({ name, params }) => {
+        dispatch(actions.loadingMethoDataFinished())
+
+        background.addKnownMethodData(fourBytePrefix, { name, params })
+
+        return { name, params }
+      })
   }
 }
